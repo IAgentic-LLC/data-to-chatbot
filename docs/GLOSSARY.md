@@ -1,0 +1,44 @@
+# Glossary, in plain words
+
+Alphabetical. If a word in an episode confuses you, it should be here.
+
+- **Alias**: a name that points at something that can change. `live` points at one index version; going live means moving the pointer.
+- **Audit log**: a list of who did what and when, which nobody can quietly rewrite. Ours links each row to the one before it with a hash.
+- **Backfill**: running a pipeline for past dates it missed.
+- **Batch**: processing a pile of data at once, on a schedule. The opposite of streaming (processing each item the moment it arrives).
+- **Bronze / silver / gold**: three layers. Bronze = raw files exactly as received. Silver = clean text. Gold = the finished, searchable thing.
+- **Chunk**: a piece of a document the search can find on its own.
+- **Classification**: a label for how sensitive data is (public, internal, personal, restricted).
+- **Content hash**: a short fingerprint of a file's exact bytes. Same bytes, same fingerprint; one changed letter, a completely different one.
+- **Curation**: deciding which documents are allowed to be searched, and writing down why.
+- **DAG**: a to-do list of tasks with an order between them and no loops. What Airflow runs.
+- **Data card**: a one-page honest description of a dataset.
+- **Data lake**: cheap storage for files of any kind. Ours speaks the S3 protocol.
+- **Deduplication**: finding documents that say the same thing and keeping one.
+- **Docker / container**: a way to run a program with everything it needs packed in, the same on every computer.
+- **ELT / ETL**: Extract, Load, Transform versus Extract, Transform, Load. See `episode-00-map/ETL_vs_ELT.md`.
+- **Embedding**: a list of numbers standing for the meaning of a text.
+- **Erasure**: deleting a person's data because they asked.
+- **Hybrid search**: vector search and keyword search, merged.
+- **Idempotent**: safe to run twice; the second run changes nothing.
+- **Index (in a database)**: a structure that makes a lookup fast. An **index version** here is a whole separate copy of the searchable data.
+- **Jaccard similarity**: the overlap of two sets divided by their combined size. 1 means identical, 0 means nothing shared.
+- **Least privilege**: give each person and program only the access it needs.
+- **Lineage**: the path from an answer back to the raw file it came from.
+- **Manifest**: the table that records every file the pipeline has ever seen.
+- **Migration**: a numbered SQL file that changes the database structure once, in order, on every machine.
+- **Mojibake**: text with damaged characters ("donâ€™t") from reading it with the wrong character set.
+- **Orchestrator**: a program that runs steps in order, on a schedule, retries failures and shows you what happened. Airflow is one.
+- **PII**: personal information about an identifiable person.
+- **Prompt injection**: text hidden in data that tries to give instructions to an AI.
+- **Quarantine**: held back until a person decides.
+- **RAG**: retrieval-augmented generation. Find relevant pieces first, then let a model answer using only them.
+- **Recall@k**: of the pieces that should have been found, how many were in the top k results.
+- **Retention**: how long you may keep data.
+- **Rollback**: going back to the previous good version.
+- **RRF (reciprocal rank fusion)**: a simple way to merge two ranked lists: each earns 1/(60+rank) points per list.
+- **Schema**: the shape of a database: its tables and columns.
+- **Tombstone**: a marker saying "this used to exist and was removed", so everything downstream can remove it too.
+- **Vector**: a list of numbers. **Vector search** finds the lists closest to the question's list.
+- **View (in a database)**: a saved question that always shows the current data.
+- **Graph (Neo4j)**: a database of things and the links between them (episode 5B).

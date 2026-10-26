@@ -1,0 +1,12 @@
+boto3>=1.34
+psycopg[binary]>=3.2
+pypdf>=5
+pyyaml>=6
+fastembed>=0.4     # the embedding model that runs on your own computer
+reportlab>=4       # only to generate the practice files
+pytest>=8
+neo4j>=6.0     # the Python driver for the graph database (episode 5B)
+langgraph>=1.2,<2                 # the agent as a graph (episode 8A)
+langchain>=1.4,<2                 # models, tools and structured answers (episode 8A)
+langgraph-checkpoint-postgres     # saves the agent state in Postgres
+langchain-deepseek>=1.1,<2        # one hosted model provider; any LangChain provider works

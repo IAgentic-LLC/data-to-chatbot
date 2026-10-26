@@ -1,0 +1,26 @@
+# Data governance policy, as code. The pipeline reads this file; a change here is a reviewed change, and it is in version control.
+# This is a TEACHING policy for a fictional company. It is not legal advice; a real policy is written with your legal and security people.
+
+classification_levels:
+  public:       "safe to show anyone"
+  internal:     "staff only; fine to answer customers from, never to publish raw"
+  personal:     "contains personal data; minimise, scrub before indexing, delete on request"
+  restricted:   "secrets, credentials, payment data: must never enter this pipeline"
+
+sources:
+  wiki:     {classification: internal, owner: platform,           retention_days: null, purpose: "answer support questions"}
+  web:      {classification: public,   owner: customer-experience, retention_days: null, purpose: "answer support questions"}
+  pdf:      {classification: internal, owner: engineering,         retention_days: null, purpose: "answer support questions"}
+  prices:   {classification: public,   owner: logistics,           retention_days: null, purpose: "answer support questions"}
+  tickets:  {classification: personal, owner: customer-experience, retention_days: 365,  purpose: "learn from resolved support cases"}
+  uploads:  {classification: internal, owner: unassigned,          retention_days: 365,  purpose: "answer support questions"}
+
+rules:
+  - "Personal data is replaced with placeholders before text can reach the search index or any model."
+  - "Anything classified restricted is rejected at ingestion (not implemented in this course: we generate no such data)."
+  - "A person's erasure request is completed within 30 days and recorded in the audit log without storing their identifier."
+  - "Every change to what the chatbot can know (a new document, an approval, an erasure, an index swap) is written to the audit log."
+  - "The chatbot's database login can read the search index and nothing else."
+data_sent_to_third_parties:
+  embeddings: "none: computed locally (the model runs on our own machine)"
+  chat_model: "decided in the serving episode; document the provider, region and retention terms before use"

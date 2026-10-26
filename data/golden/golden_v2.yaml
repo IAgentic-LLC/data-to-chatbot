@@ -1,0 +1,675 @@
+# Episode 2 golden set. Built by build_golden.py, verified against data/docs. split: dev (we may look at failures) / test (fixed, never tuned on).
+- id: o01
+  q: Can a customer return Air Glide sneakers bought in last Friday's drop after 10 days?
+  expect:
+  - drop-day-runbook#drop-calendar
+  - refund-policy#limited-drops
+  - refund-policy#eu-customers
+  facts: The Air Glide restock (2026-10-16) was a limited drop. No for US and UK customers (7-day drop window, PC-12). Yes for EU customers (14-day legal right).
+  key:
+  - Air Glide restock
+  - 7-day return window
+  - 14-day
+  answerable: true
+  tag: regression
+  hops: 2
+  split: dev
+- id: o02
+  q: A customer sees error E-4012 at checkout. What do I tell them?
+  expect:
+  - checkout-errors#e-4012-payment-hold
+  facts: Bank needs 3-D Secure approval in the banking app within 10 minutes; the pair is held; not charged yet.
+  key:
+  - 3-D Secure
+  - 10 minutes
+  answerable: true
+  tag: regression
+  split: test
+- id: o03
+  q: What does E-4029 mean?
+  expect:
+  - checkout-errors#e-4029-too-many-attempts
+  facts: Too many checkout attempts (5 per minute); wait 60 seconds and try once.
+  key:
+  - 5 checkout attempts
+  - 60 seconds
+  answerable: true
+  tag: regression
+  split: dev
+- id: o04
+  q: What's the return window for normal, non-drop items?
+  expect:
+  - refund-policy#standard-returns
+  facts: 30 days from delivery, unworn, original box, tags attached.
+  key:
+  - 30 days
+  - unworn
+  answerable: true
+  tag: regression
+  split: dev
+- id: o05
+  q: Why did we shorten the return window for drops?
+  expect:
+  - inc-2047-postmortem#what-happened
+  - inc-2047-postmortem#actions
+  facts: 'After INC-2047: 41% of Air Glide returns came from 12 reseller accounts; PC-12 set 7 days.'
+  key:
+  - 41%
+  - 12 accounts
+  - 7 days
+  answerable: true
+  tag: regression
+  hops: 2
+  split: test
+- id: o06
+  q: When did PC-12 take effect?
+  expect:
+  - refund-policy#limited-drops
+  facts: 2026-04-01.
+  key:
+  - '2026-04-01'
+  answerable: true
+  tag: regression
+  split: dev
+- id: o07
+  q: A German customer bought a drop pair 12 days ago. Can they still return it?
+  expect:
+  - refund-policy#eu-customers
+  facts: Yes, EU customers have 14 days even for drops.
+  key:
+  - 14-day
+  answerable: true
+  tag: regression
+  split: dev
+- id: o08
+  q: How many checkout pods do we run before a drop?
+  expect:
+  - drop-day-runbook#t-60-minutes
+  facts: 40 pods, scaled at T-60 minutes.
+  key:
+  - 40 pods
+  answerable: true
+  tag: regression
+  split: dev
+- id: o09
+  q: What should on-call do if checkout errors stay high during a drop?
+  expect:
+  - drop-day-runbook#during-the-drop
+  facts: 'Above 2% for 3 minutes: page payments on-call and post in #drop-war-room.'
+  key:
+  - 2%
+  - '#drop-war-room'
+  answerable: true
+  tag: regression
+  split: dev
+- id: o10
+  q: How fast must we respond to a SEV-1?
+  expect:
+  - on-call#severity-levels
+  facts: Within 5 minutes.
+  key:
+  - within 5 minutes
+  answerable: true
+  tag: regression
+  split: test
+- id: o11
+  q: When do Drop Club members get in?
+  expect:
+  - drop-club#benefits
+  facts: 09:50, 10 minutes before the public release.
+  key:
+  - 09:50
+  answerable: true
+  tag: regression
+  split: dev
+- id: o12
+  q: Do customers keep their points if they return an order?
+  expect:
+  - drop-club#points-on-returns
+  facts: No, points are removed when the refund is issued.
+  key:
+  - removed
+  answerable: true
+  tag: regression
+  split: dev
+- id: o13
+  q: How long does standard shipping take to the US?
+  expect:
+  - shipping-policy#delivery-times
+  facts: 2 to 4 business days.
+  key:
+  - 2 to 4 business days
+  answerable: true
+  tag: regression
+  split: dev
+- id: o14
+  q: Can a customer change the delivery address on a drop order?
+  expect:
+  - shipping-policy#drop-orders
+  facts: No, not after the drop order is placed.
+  key:
+  - cannot change the delivery address
+  answerable: true
+  tag: regression
+  split: dev
+- id: o15
+  q: What caused the 503 errors in the Volt Runner drop?
+  expect:
+  - inc-2051-postmortem#what-happened
+  facts: Bots retried checkout in tight loops at 3,000 req/s; the queue overflowed; 18% of requests failed for 11 minutes.
+  key:
+  - 3,000 requests per second
+  - 18%
+  answerable: true
+  tag: regression
+  split: dev
+- id: o16
+  q: What rate limit do partner API keys have?
+  expect:
+  - api-rate-limits#limits
+  facts: 100 requests per minute, token bucket, burst of 20.
+  key:
+  - 100 requests per minute
+  - burst of 20
+  answerable: true
+  tag: regression
+  split: dev
+- id: o17
+  q: My customer's Volt Runners arrived broken after 2 months. Can they return them?
+  expect:
+  - refund-policy#exceptions
+  facts: Yes, defective items can be returned within 90 days regardless of drop status.
+  key:
+  - 90 days
+  answerable: true
+  tag: regression
+  split: test
+- id: o18
+  q: Can customers return gift cards?
+  expect: []
+  facts: Not covered by the docs.
+  key: []
+  answerable: false
+  tag: regression
+  split: test
+- id: o19
+  q: Do we ship to Japan?
+  expect:
+  - shipping-policy#where-we-ship
+  facts: No, only EU, UK and US.
+  key:
+  - do not ship to other countries
+  answerable: true
+  tag: regression
+  split: dev
+- id: o20
+  q: What's our refund policy for orders paid with crypto?
+  expect: []
+  facts: Not covered by the docs.
+  key: []
+  answerable: false
+  tag: regression
+  split: dev
+- id: o21
+  q: Who is the CEO of Dropline?
+  expect: []
+  facts: Not covered by the docs.
+  key: []
+  answerable: false
+  tag: regression
+  split: dev
+- id: o22
+  q: How long is the warranty on Dropline sneakers?
+  expect: []
+  facts: Not covered by the docs (only the 90-day defective return rule exists).
+  key: []
+  answerable: false
+  tag: regression
+  split: test
+- id: p01
+  q: A shopper got regular-release shoes 20 days ago and wants to send them back. Is that fine?
+  expect:
+  - refund-policy#standard-returns
+  facts: Yes, within 30 days of delivery if unworn, original box, tags attached.
+  key:
+  - 30 days
+  answerable: true
+  tag: paraphrase
+  split: dev
+- id: p02
+  q: Someone in Berlin received a Friday-release pair 10 days ago and wants out. Can they?
+  expect:
+  - refund-policy#eu-customers
+  - refund-policy#limited-drops
+  facts: Yes. EU customers keep the 14-day right of withdrawal even for drops.
+  key:
+  - 14-day
+  answerable: true
+  tag: multi-hop
+  hops: 2
+  split: dev
+- id: p03
+  q: After the March reseller wave, how many pairs can one person buy per release?
+  expect:
+  - inc-2047-postmortem#actions
+  facts: One pair per customer per release.
+  key:
+  - 1 pair per customer
+  answerable: true
+  tag: paraphrase
+  split: dev
+- id: p04
+  q: How long until the money is back after a return is scanned at the warehouse?
+  expect:
+  - refund-policy#standard-returns
+  facts: Within 5 business days, to the original payment method.
+  key:
+  - 5 business days
+  answerable: true
+  tag: paraphrase
+  split: dev
+- id: p05
+  q: Checkout has been failing for over three minutes at release time. Who gets paged and where do I post?
+  expect:
+  - drop-day-runbook#during-the-drop
+  facts: 'Page the payments on-call and post in #drop-war-room (error rate above 2% for 3 minutes).'
+  key:
+  - '#drop-war-room'
+  - payments on-call
+  answerable: true
+  tag: paraphrase
+  split: dev
+- id: p06
+  q: How many checkout pods an hour before a release, and how many half an hour after it ends?
+  expect:
+  - drop-day-runbook#t-60-minutes
+  - drop-day-runbook#after-the-drop
+  facts: 40 pods at T-60 minutes; back to 8 pods after 30 minutes.
+  key:
+  - 40 pods
+  - 8 pods
+  answerable: true
+  tag: multi-hop
+  hops: 2
+  split: dev
+- id: p07
+  q: A UK customer's trainers split open after 80 days. The drop window is 7 days. Do we help?
+  expect:
+  - refund-policy#exceptions
+  facts: Yes. Defective items can be returned within 90 days regardless of drop status.
+  key:
+  - 90 days
+  answerable: true
+  tag: paraphrase
+  split: test
+- id: p08
+  q: On what date did bots hammer checkout, and which error code do customers now see when rate limited?
+  expect:
+  - inc-2051-postmortem#overview
+  - inc-2051-postmortem#fixes
+  facts: 2026-05-08; E-4029 (too many attempts, 5 per minute).
+  key:
+  - '2026-05-08'
+  - E-4029
+  answerable: true
+  tag: context
+  hops: 2
+  split: test
+- id: p09
+  q: How early do loyalty members get in on release day, and what do they get at 500 points?
+  expect:
+  - drop-club#benefits
+  facts: 09:50, 10 minutes early; free express delivery for a year at 500 points.
+  key:
+  - 09:50
+  - free express delivery
+  answerable: true
+  tag: paraphrase
+  split: dev
+- id: p10
+  q: What does express delivery cost in the UK?
+  expect:
+  - shipping-policy#delivery-times
+  facts: 10 GBP (1 to 2 business days).
+  key:
+  - 10 GBP
+  answerable: true
+  tag: superseded
+  split: dev
+- id: p11
+  q: If our on-call engineer ignores a page for 12 minutes, who is paged next?
+  expect:
+  - on-call#escalation
+  facts: After 10 minutes the pager escalates to the team lead, then the head of engineering.
+  key:
+  - 10 minutes
+  - team lead
+  answerable: true
+  tag: paraphrase
+  split: test
+- id: p12
+  q: How many of the 1,180 returned Air Glide pairs came from the 12 reseller accounts?
+  expect:
+  - inc-2047-postmortem#what-happened
+  facts: 41% of 1,180, about 484 pairs.
+  key:
+  - 41%
+  - 1,180
+  answerable: true
+  tag: paraphrase
+  split: dev
+- id: p13
+  q: A customer approved the payment in the banking app but still sees a hold. How long is the pair reserved, and are they charged?
+  expect:
+  - checkout-errors#e-4012-payment-hold
+  facts: The cart is held 10 minutes; they have not been charged until approval.
+  key:
+  - has not been charged
+  answerable: true
+  tag: paraphrase
+  split: dev
+- id: p14
+  q: Which sneaker release in 2026 was the first one the 7-day return rule applied to?
+  expect:
+  - refund-policy#limited-drops
+  - drop-day-runbook#drop-calendar
+  facts: PC-12 applies to drops on or after 2026-04-01, so the Volt Runner drop on 2026-05-08 was the first.
+  key:
+  - '2026-04-01'
+  - Volt Runner
+  answerable: true
+  tag: multi-hop
+  hops: 2
+  split: dev
+- id: p15
+  q: A US customer's drop pair was delivered on the 20th. On which day does their return window end?
+  expect:
+  - refund-policy#limited-drops
+  - refund-policy#uk-and-us-customers
+  facts: 7 days from delivery, so the window ends on the 27th.
+  key:
+  - 7-day
+  answerable: true
+  tag: multi-hop
+  hops: 2
+  split: dev
+- id: p18
+  q: Who do I email about changes to the returns rules?
+  expect:
+  - refund-policy#overview
+  facts: Customer Experience, cx-policy@dropline.example.
+  key:
+  - cx-policy@dropline.example
+  answerable: true
+  tag: paraphrase
+  split: dev
+- id: p19
+  q: What time does the on-call week change over, and in which time zone?
+  expect:
+  - on-call#rotation
+  facts: Monday at 09:00 CET.
+  key:
+  - Monday at 09:00 CET
+  answerable: true
+  tag: paraphrase
+  split: test
+- id: p20
+  q: Can a customer in Canada order a drop pair with express delivery?
+  expect:
+  - shipping-policy#where-we-ship
+  facts: No. We ship only to EU countries, the UK and the US.
+  key:
+  - EU countries, the UK and the US
+  answerable: true
+  tag: superseded
+  split: test
+- id: p21
+  q: What does PC stand for in PC-12, and when did it start?
+  expect:
+  - glossary#terms
+  - refund-policy#limited-drops
+  facts: Policy change; effective 2026-04-01.
+  key:
+  - policy change
+  - '2026-04-01'
+  answerable: true
+  tag: multi-hop
+  hops: 2
+  split: test
+- id: p22
+  q: The customer got E-5031 and is worried about being charged twice. What do I say?
+  expect:
+  - checkout-errors#e-5031-inventory-timeout
+  facts: The inventory service timed out; the customer has not been charged; ask them to retry (the page says if the drop sold out).
+  key:
+  - has not been charged
+  answerable: true
+  tag: paraphrase
+  split: dev
+- id: p23
+  q: How many pairs were in the first Air Glide drop and how long did they take to sell out?
+  expect:
+  - inc-2047-postmortem#what-happened
+  - drop-day-runbook#drop-calendar
+  facts: 5,000 pairs, sold out in 4 minutes.
+  key:
+  - 5,000 pairs
+  - 4 minutes
+  answerable: true
+  tag: multi-hop
+  split: dev
+- id: p24
+  q: Do Drop Club points stay when a member returns an order?
+  expect:
+  - drop-club#points-on-returns
+  facts: 'No: points earned on the returned order are removed when the refund is issued.'
+  key:
+  - removed
+  answerable: true
+  tag: paraphrase
+  split: test
+- id: n01
+  q: A customer bought regular running shoes on 1 December. What is the last day they can return them?
+  expect:
+  - holiday-returns-and-hours#holiday-returns
+  facts: 31 January of the next year (holiday extension).
+  key:
+  - 31 January
+  - 15 November
+  answerable: true
+  tag: near-duplicate
+  split: dev
+- id: n02
+  q: Where are covered repairs done and how long do they take?
+  expect:
+  - repairs-and-defects#repairs
+  facts: At the partner workshop in Rotterdam, 10 to 15 business days.
+  key:
+  - Rotterdam
+  - 10 to 15 business days
+  answerable: true
+  tag: easy
+  split: dev
+- id: n03
+  q: Can a customer swap a limited drop pair for another size?
+  expect:
+  - exchanges-and-sizing#size-exchanges
+  facts: No. Limited drop items cannot be exchanged; they can only be returned inside the drop window.
+  key:
+  - cannot be exchanged
+  answerable: true
+  tag: near-duplicate
+  split: dev
+- id: n04
+  q: Does Air Glide run big or small?
+  expect:
+  - exchanges-and-sizing#sizing-advice
+  facts: Half a size small; most customers go up half a size.
+  key:
+  - half a size small
+  answerable: true
+  tag: easy
+  split: test
+- id: n05
+  q: A customer disputed a payment with their bank. Should I also send them a refund?
+  expect:
+  - payments-and-chargebacks#chargebacks
+  facts: No second refund. Send the order reference to the Payments team within 2 business days.
+  key:
+  - do not issue a second refund
+  - 2 business days
+  answerable: true
+  tag: paraphrase
+  split: test
+- id: n06
+  q: How long can a bank take to show a refund after we issue it?
+  expect:
+  - payments-and-chargebacks#refund-timing
+  facts: Up to 10 more business days after we issue it (we issue within 5 business days of the scan).
+  key:
+  - 10 more business days
+  answerable: true
+  tag: near-duplicate
+  split: test
+- id: n07
+  q: How many returns from drops trigger a fraud review?
+  expect:
+  - fraud-and-reseller-controls#account-review
+  facts: More than 3 drop returns in 90 days.
+  key:
+  - more than 3 drop returns in 90 days
+  answerable: true
+  tag: paraphrase
+  split: dev
+- id: n08
+  q: Where do I forward a customer who wants a copy of their personal data?
+  expect:
+  - data-requests#access-and-export
+  facts: privacy@dropline.example; agents must not export data themselves; we reply within 30 days.
+  key:
+  - privacy@dropline.example
+  answerable: true
+  tag: paraphrase
+  split: dev
+- id: n09
+  q: When was version 1 of the partner API shut down, and what do calls to it return now?
+  expect:
+  - partner-api-changelog#version-1
+  facts: 2026-06-30; HTTP 410.
+  key:
+  - '2026-06-30'
+  - HTTP 410
+  answerable: true
+  tag: context
+  split: dev
+- id: n10
+  q: What request rate did the old version 1 of the partner API allow?
+  expect:
+  - partner-api-changelog#version-1
+  facts: 60 requests per minute with no burst (the current limit is 100 per minute).
+  key:
+  - 60 requests per minute
+  answerable: true
+  tag: near-duplicate
+  split: dev
+- id: n11
+  q: After a SEV-1 page, how soon must the first status update go out and how often after that?
+  expect:
+  - status-and-incident-comms#sev-1-updates
+  facts: Within 15 minutes, then every 30 minutes until resolved.
+  key:
+  - within 15 minutes
+  - every 30 minutes
+  answerable: true
+  tag: near-duplicate
+  split: dev
+- id: n12
+  q: Why were about 2,400 EU parcels late in July?
+  expect:
+  - inc-2052-postmortem#what-happened
+  facts: A carrier hub in Cologne closed for 3 days after a strike.
+  key:
+  - Cologne
+  - 2,400
+  answerable: true
+  tag: context
+  split: dev
+- id: n13
+  q: What went wrong with the size chart in the April Air Glide order email?
+  expect:
+  - inc-2049-postmortem#what-happened
+  facts: European sizes were shown under US labels for 2 hours; 1,900 customers saw it.
+  key:
+  - 1,900 customers
+  answerable: true
+  tag: context
+  split: test
+- id: n14
+  q: How many points make a member Gold, and do points ever expire?
+  expect:
+  - drop-club-tiers#gold-tier
+  - drop-club-tiers#points-expiry
+  facts: 2,000 points; yes, 12 months after they were earned.
+  key:
+  - 2,000 points
+  - 12 months
+  answerable: true
+  tag: multi-hop
+  split: dev
+- id: n15
+  q: When is the next Volt Runner drop and how many pairs?
+  expect:
+  - drop-calendar-h2-2026#upcoming-drops
+  facts: Friday 2026-11-06 at 10:00, 4,000 pairs.
+  key:
+  - '2026-11-06'
+  - 4,000 pairs
+  answerable: true
+  tag: easy
+  split: dev
+- id: n16
+  q: If a customer tried the shoes on indoors, can they still return them?
+  expect:
+  - product-care#returns
+  facts: Yes. Trying on indoors is fine; pairs worn outdoors are refused.
+  key:
+  - Trying a pair on indoors
+  answerable: true
+  tag: paraphrase
+  split: test
+- id: n17
+  q: Do we offer gift wrapping?
+  expect: []
+  facts: Not covered by the documents.
+  key: []
+  answerable: false
+  tag: unanswerable
+  split: dev
+- id: n18
+  q: How much does the Trail Glide cost?
+  expect: []
+  facts: Not covered by the documents (only its drop date and size are listed).
+  key: []
+  answerable: false
+  tag: unanswerable
+  split: dev
+- id: n19
+  q: How many days do defective items have for a refund under the current policy?
+  expect:
+  - refund-policy#exceptions
+  facts: 90 days (the archived policy said 60).
+  key:
+  - 90 days
+  answerable: true
+  tag: superseded
+  split: test
+- id: n20
+  q: What return window did limited drops have before PC-12?
+  expect:
+  - refund-policy#limited-drops
+  facts: The standard 30-day window.
+  key:
+  - Before PC-12
+  answerable: true
+  tag: superseded
+  split: dev

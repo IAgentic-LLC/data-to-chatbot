@@ -1,0 +1,110 @@
+# Episode 0/1 stack: a database and a data lake. Airflow is added in episode 3 (docker-compose.airflow.yml).
+# Ports are bound to localhost only, so nothing here is reachable from outside your machine.
+name: ragpipe
+
+services:
+  db:
+    image: pgvector/pgvector:0.8.7-pg17-trixie        # Postgres 17 with the pgvector extension installed
+    environment:
+      POSTGRES_USER: pipeline
+      POSTGRES_PASSWORD: pipeline
+      POSTGRES_DB: pipeline
+    ports:
+      - "127.0.0.1:5433:5432"                            # 5433 on your machine so it never clashes with a Postgres you already run
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pipeline -d pipeline"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  lake:
+    image: chrislusf/seaweedfs:latest                  # pin a version tag before production (episode 9)
+    command: "server -dir=/data -s3 -s3.port=8333 -volume.max=20"
+    ports:
+      - "127.0.0.1:8333:8333"                            # the S3 API
+    volumes:
+      - lakedata:/data
+
+  # ---- episode 5B: the knowledge graph (start with:  docker compose --profile graph up -d graph) ----
+  graph:
+    profiles: ["graph"]
+    image: neo4j:2026.10.1-community                    # Community Edition: free, one database. Pinned: check for a newer tag before copying this into a real project.
+    environment:
+      NEO4J_AUTH: neo4j/dropline-local-pw               # throwaway local password (at least 8 characters)
+      NEO4J_server_memory_heap_initial__size: 256m      # small on purpose: our graph has about 40 nodes
+      NEO4J_server_memory_heap_max__size: 512m
+      NEO4J_server_memory_pagecache_size: 128m
+    ports:
+      - "127.0.0.1:7474:7474"                           # the browser page (explore the graph by clicking)
+      - "127.0.0.1:7687:7687"                           # the Bolt port the Python driver uses
+    volumes:
+      - graphdata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p dropline-local-pw 'RETURN 1' || exit 1"]
+      interval: 10s
+      timeout: 15s
+      retries: 30
+      start_period: 120s                              # Neo4j takes a while to start; on a busy laptop it took about 9 minutes the first time (measured)
+
+  # ---- episode 3: Airflow (start with:  docker compose --profile airflow up -d) ----
+  airflow-prep:                                          # one-time: make the separate 'airflow' database and migrate it
+    profiles: ["airflow"]
+    build: ./docker/airflow
+    image: ragpipe-airflow:local
+    env_file: ./docker/airflow/airflow.env
+    depends_on:
+      db: {condition: service_healthy}
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        python - <<'PY'
+        import psycopg
+        with psycopg.connect("postgresql://pipeline:pipeline@db:5432/pipeline", autocommit=True) as c:
+            if not c.execute("SELECT 1 FROM pg_database WHERE datname='airflow'").fetchone():
+                c.execute("CREATE DATABASE airflow")
+        PY
+        airflow db migrate
+
+  airflow-api:                                           # the web UI and the API the other parts talk to
+    profiles: ["airflow"]
+    image: ragpipe-airflow:local
+    env_file: ./docker/airflow/airflow.env
+    command: api-server
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes: &airflow-volumes
+      - ./episode-03-airflow/dags:/opt/airflow/dags
+      - ./pipeline:/opt/airflow/project/pipeline
+      - ./data/sources:/opt/airflow/project/data/sources:ro
+      - ./migrations:/opt/airflow/project/migrations:ro
+      - ./governance:/opt/airflow/project/governance:ro
+      - fastembed-cache:/opt/airflow/fastembed_cache          # the embedding model is downloaded once, then kept
+    depends_on:
+      airflow-prep: {condition: service_completed_successfully}
+      lake: {condition: service_started}
+
+  airflow-scheduler:                                     # decides what runs when
+    profiles: ["airflow"]
+    image: ragpipe-airflow:local
+    env_file: ./docker/airflow/airflow.env
+    command: scheduler
+    volumes: *airflow-volumes
+    depends_on:
+      airflow-prep: {condition: service_completed_successfully}
+
+  airflow-dag-processor:                                 # reads your DAG files
+    profiles: ["airflow"]
+    image: ragpipe-airflow:local
+    env_file: ./docker/airflow/airflow.env
+    command: dag-processor
+    volumes: *airflow-volumes
+    depends_on:
+      airflow-prep: {condition: service_completed_successfully}
+
+volumes:
+  dbdata:
+  lakedata:
+  graphdata:
+  fastembed-cache:
